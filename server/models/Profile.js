@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 const profileSchema = new mongoose.Schema({
   name: { type: String, required: true },
   tagline: { type: String },
-  bio: { type: String }, // long text
-  avatar: { type: String }, // Cloudinary URL
-  resume: { type: String }, // Cloudinary URL
+  bio: { type: String },
+  avatar: { type: String },
+  resume: { type: String },
   socialLinks: {
     github: String,
     linkedin: String,
@@ -13,6 +13,13 @@ const profileSchema = new mongoose.Schema({
     youtube: String,
     website: String,
   },
+  aboutTitle: { type: String },
+  aboutImage: { type: String },
+  aboutDescription: { type: String },
+  aboutHighlights: [{
+    value: String,
+    label: String,
+  }],
   email: { type: String },
   location: { type: String },
   availability: { type: Boolean, default: true },

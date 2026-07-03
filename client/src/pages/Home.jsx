@@ -15,6 +15,7 @@ import {
   MapPin,
   Calendar,
   Download,
+  GraduationCap,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -22,6 +23,7 @@ import {
   useSkills,
   useProjects,
   useExperience,
+  useEducation,
 } from "../hooks/usePortfolio";
 import { submitContact } from "../api/contact";
 import SectionHeading from "../components/SectionHeading";
@@ -45,7 +47,9 @@ export default function Home() {
   return (
     <div>
       <HeroSection />
+      <AboutSection />
       <SkillsSection />
+      <EducationSection />
       <FeaturedProjects />
       <ExperienceSection />
       <ContactSection />
@@ -294,6 +298,69 @@ function HeroSection() {
   );
 }
 
+function AboutSection() {
+  const { data, isLoading } = useProfile();
+  const profile = data?.data;
+
+  if (isLoading) return null;
+
+  const title = profile?.aboutTitle || "About Me";
+  const description = profile?.aboutDescription || profile?.bio || "";
+  const image = profile?.aboutImage || profile?.avatar;
+  const highlights = profile?.aboutHighlights || [];
+
+  if (!description && !image && highlights.length === 0) return null;
+
+  return (
+    <section id="about" className="section-padding">
+      <div className="container-custom">
+        <SectionHeading title={title} subtitle="A little bit about myself" />
+        <div className="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
+          {image && (
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <img
+                src={image}
+                alt={title}
+                className="w-full max-w-md rounded-2xl object-cover shadow-lg mx-auto"
+              />
+            </motion.div>
+          )}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="space-y-6"
+          >
+            {description.split("\n").filter(Boolean).map((para, i) => (
+              <p key={i} className="text-gray-400 leading-relaxed">
+                {para}
+              </p>
+            ))}
+            {highlights.length > 0 && (
+              <div className="grid grid-cols-3 gap-4 pt-4">
+                {highlights.map((h, i) => (
+                  <div key={i} className="text-center p-4 rounded-lg bg-dark-100 border border-dark-300/50">
+                    <p className="text-2xl md:text-3xl font-bold text-primary">
+                      {h.value}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">{h.label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function SkillsSection() {
   const { data, isLoading, isError } = useSkills();
   const grouped = data?.data;
@@ -355,6 +422,70 @@ function SkillsSection() {
                   </div>
                 </div>
               ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function EducationSection() {
+  const { data, isLoading, isError } = useEducation();
+  const educations = data?.data;
+
+  return (
+    <section id="education" className="section-padding bg-dark-100/50">
+      <div className="container-custom">
+        <SectionHeading
+          title="Education"
+          subtitle="My academic background"
+        />
+        {isError && <ErrorState message="Failed to load education" />}
+        {isLoading ? (
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+        ) : (
+          <div className="relative max-w-3xl mx-auto">
+            <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-dark-300" />
+            {educations?.map((edu, i) => (
+              <motion.div
+                key={edu._id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className={`relative flex flex-col md:flex-row gap-4 mb-10 ${i % 2 === 0 ? "md:flex-row-reverse" : ""}`}
+              >
+                <div className="absolute left-4 md:left-1/2 w-3 h-3 bg-primary rounded-full -translate-x-1/2 mt-1.5 ring-4 ring-dark" />
+                <div
+                  className={`ml-10 md:ml-0 md:w-1/2 ${i % 2 === 0 ? "md:pl-8" : "md:pr-8 md:text-right"}`}
+                >
+                  <div className="p-5 rounded-lg bg-dark-100 border border-dark-300/50">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                      <Calendar size={12} />
+                      <span>
+                        {formatDate(edu.startDate)} —{" "}
+                        {edu.current ? "Present" : edu.endDate ? formatDate(edu.endDate) : "Present"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <GraduationCap size={16} className="text-primary" />
+                      <h3 className="text-white font-semibold">{edu.degree}{edu.field ? ` in ${edu.field}` : ""}</h3>
+                    </div>
+                    <p className="text-primary text-sm">{edu.institution}</p>
+                    {edu.cgpa && (
+                      <p className="text-xs text-gray-400 mt-1">CGPA: {edu.cgpa}</p>
+                    )}
+                    {edu.description && (
+                      <p className="mt-2 text-sm text-gray-400">{edu.description}</p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         )}
       </div>

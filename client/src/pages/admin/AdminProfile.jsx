@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { Upload } from "lucide-react";
+import { Upload, Plus, Trash2 } from "lucide-react";
 import { useProfile } from "../../hooks/usePortfolio";
 import { updateProfile, uploadAvatar, updateResume } from "../../api/profile";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,6 +23,8 @@ const schema = z.object({
   "socialLinks.twitter": z.string().optional(),
   "socialLinks.youtube": z.string().optional(),
   "socialLinks.website": z.string().optional(),
+  aboutTitle: z.string().optional(),
+  aboutDescription: z.string().optional(),
 });
 
 export default function AdminProfile() {
@@ -33,6 +35,9 @@ export default function AdminProfile() {
   const [uploading, setUploading] = useState(false);
   const [resumeUrl, setResumeUrl] = useState("");
   const [savingResume, setSavingResume] = useState(false);
+  const [aboutImagePreview, setAboutImagePreview] = useState(null);
+  const [uploadingAbout, setUploadingAbout] = useState(false);
+  const [highlights, setHighlights] = useState([]);
 
   const {
     register,
@@ -58,9 +63,17 @@ export default function AdminProfile() {
         "socialLinks.twitter": profile.socialLinks?.twitter || "",
         "socialLinks.youtube": profile.socialLinks?.youtube || "",
         "socialLinks.website": profile.socialLinks?.website || "",
+        aboutTitle: profile.aboutTitle || "",
+        aboutDescription: profile.aboutDescription || "",
       });
       setAvatarPreview(profile.avatar);
       setResumeUrl(profile.resume || "");
+      setAboutImagePreview(profile.aboutImage || null);
+      setHighlights(
+        profile.aboutHighlights?.length
+          ? profile.aboutHighlights
+          : [{ value: "", label: "" }]
+      );
     }
   }, [profile, reset]);
 
@@ -75,8 +88,8 @@ export default function AdminProfile() {
           youtube: values["socialLinks.youtube"],
           website: values["socialLinks.website"],
         },
+        aboutHighlights: highlights.filter((h) => h.value.trim() || h.label.trim()),
       };
-      // Remove flat social keys
       Object.keys(payload)
         .filter((k) => k.startsWith("socialLinks."))
         .forEach((k) => delete payload[k]);
@@ -117,6 +130,37 @@ export default function AdminProfile() {
       toast.error("Failed to save resume link");
     }
     setSavingResume(false);
+  };
+
+  const handleAboutImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAbout(true);
+    try {
+      const { data } = await uploadAvatar(file);
+      const aboutImageUrl = data.data.avatar;
+      await updateProfile({ aboutImage: aboutImageUrl });
+      setAboutImagePreview(aboutImageUrl);
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("About image updated");
+    } catch {
+      toast.error("Upload failed");
+    }
+    setUploadingAbout(false);
+  };
+
+  const addHighlight = () => {
+    setHighlights([...highlights, { value: "", label: "" }]);
+  };
+
+  const removeHighlight = (index) => {
+    setHighlights(highlights.filter((_, i) => i !== index));
+  };
+
+  const updateHighlight = (index, field, val) => {
+    const updated = [...highlights];
+    updated[index] = { ...updated[index], [field]: val };
+    setHighlights(updated);
   };
 
   if (isLoading) return <div className="text-gray-500">Loading...</div>;
@@ -220,6 +264,85 @@ export default function AdminProfile() {
               rows={4}
               className={`${inputCls} resize-none`}
             />
+          </div>
+          <div className="border-t border-[#2a2f3d] pt-4">
+            <p className="text-sm font-medium text-gray-300 mb-3">
+              About Section
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className={labelCls}>About Title</label>
+                <input
+                  {...register("aboutTitle")}
+                  placeholder="About Me"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>About Image</label>
+                {aboutImagePreview && (
+                  <img
+                    src={aboutImagePreview}
+                    alt="About"
+                    className="w-20 h-20 rounded-lg object-cover mb-2"
+                  />
+                )}
+                <label className="inline-flex items-center gap-2 px-3 py-2 text-xs bg-[#2a2f3d] rounded-lg cursor-pointer hover:bg-[#333a4a] transition-colors">
+                  <Upload size={14} /> {aboutImagePreview ? "Change Image" : "Upload Image"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAboutImageUpload}
+                    disabled={uploadingAbout}
+                  />
+                </label>
+              </div>
+              <div>
+                <label className={labelCls}>About Description</label>
+                <textarea
+                  {...register("aboutDescription")}
+                  rows={5}
+                  placeholder="Write about yourself, your programming journey, interests, hobbies..."
+                  className={`${inputCls} resize-none`}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Highlight Stats</label>
+                <div className="space-y-2">
+                  {highlights.map((h, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input
+                        value={h.value}
+                        onChange={(e) => updateHighlight(i, "value", e.target.value)}
+                        placeholder="e.g. 5+"
+                        className={`${inputCls} flex-1`}
+                      />
+                      <input
+                        value={h.label}
+                        onChange={(e) => updateHighlight(i, "label", e.target.value)}
+                        placeholder="e.g. Years Experience"
+                        className={`${inputCls} flex-1`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeHighlight(i)}
+                        className="p-2 text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addHighlight}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-primary hover:bg-[#2a2f3d] rounded-lg transition-colors"
+                  >
+                    <Plus size={14} /> Add Highlight
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
