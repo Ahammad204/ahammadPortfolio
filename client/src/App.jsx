@@ -19,6 +19,8 @@ import ProjectForm from './pages/admin/ProjectForm';
 import AdminSkills from './pages/admin/AdminSkills';
 import AdminExperience from './pages/admin/AdminExperience';
 import AdminEducation from './pages/admin/AdminEducation';
+import AdminCertifications from './pages/admin/AdminCertifications';
+import CertificationForm from './pages/admin/CertificationForm';
 import AdminMessages from './pages/admin/AdminMessages';
 
 export default function App() {
@@ -51,6 +53,9 @@ export default function App() {
               <Route path="skills" element={<AdminSkills />} />
               <Route path="experience" element={<AdminExperience />} />
               <Route path="education" element={<AdminEducation />} />
+              <Route path="certifications" element={<AdminCertifications />} />
+              <Route path="certifications/new" element={<CertificationForm />} />
+              <Route path="certifications/:id/edit" element={<CertificationForm />} />
               <Route path="messages" element={<AdminMessages />} />
             </Route>
           </Route>

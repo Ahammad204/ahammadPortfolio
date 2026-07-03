@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,12 +16,20 @@ import {
   Calendar,
   Download,
   GraduationCap,
+  Award,
+  ChevronDown,
+  ChevronUp,
   Mail,
   Phone,
   MessageCircle,
   Code2,
   Briefcase,
   Heart,
+  Server,
+  Wrench,
+  Layers,
+  Database,
+  BookOpen,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -30,10 +38,12 @@ import {
   useProjects,
   useExperience,
   useEducation,
+  useCertifications,
 } from "../hooks/usePortfolio";
 import { submitContact } from "../api/contact";
 import SectionHeading from "../components/SectionHeading";
 import Badge from "../components/Badge";
+import SkillIcon from "../components/SkillIcon";
 import Skeleton from "../components/Skeleton";
 import ErrorState from "../components/ErrorState";
 import { formatDate } from "../lib/utils";
@@ -58,6 +68,7 @@ export default function Home() {
       <EducationSection />
       <FeaturedProjects />
       <ExperienceSection />
+      <CertificationsSection />
       <ContactSection />
     </div>
   );
@@ -304,9 +315,39 @@ function HeroSection() {
   );
 }
 
+function AnimatedStat({ value, suffix }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isInView || isNaN(value)) return;
+    const duration = 1500;
+    const startTime = Date.now();
+    let frame;
+
+    const tick = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      setCount(Math.floor(progress * value));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [isInView, value]);
+
+  return (
+    <p ref={ref} className="text-2xl md:text-3xl font-bold text-primary">
+      {count}{suffix}
+    </p>
+  );
+}
+
 function AboutSection() {
   const { data, isLoading } = useProfile();
   const profile = data?.data;
+  const [activeTab, setActiveTab] = useState(0);
 
   if (isLoading) return null;
 
@@ -317,79 +358,152 @@ function AboutSection() {
   const workEnjoy = profile?.workEnjoy || "";
   const hobbiesInterests = profile?.hobbiesInterests || "";
 
-  if (!description && highlights.length === 0 && !programmingJourney && !workEnjoy && !hobbiesInterests) return null;
+  if (
+    !description &&
+    highlights.length === 0 &&
+    !programmingJourney &&
+    !workEnjoy &&
+    !hobbiesInterests
+  )
+    return null;
 
-  const cards = [
+  const tabs = [
     { icon: Code2, label: "Programming Journey", text: programmingJourney },
     { icon: Briefcase, label: "Work I Enjoy", text: workEnjoy },
     { icon: Heart, label: "Hobbies & Interests", text: hobbiesInterests },
-  ].filter((c) => c.text);
+  ].filter((t) => t.text);
 
   return (
     <section id="about" className="section-padding">
       <div className="container-custom">
         <SectionHeading title={title} subtitle="A little bit about myself" />
-        <div className="max-w-5xl mx-auto space-y-8">
-          {description && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="rounded-2xl border border-dark-300/50 bg-dark-100/80 backdrop-blur p-8"
-            >
-              {description.split("\n").filter(Boolean).map((para, i) => (
-                <p key={i} className="text-gray-400 leading-relaxed">
-                  {para}
-                </p>
-              ))}
-            </motion.div>
-          )}
-
-          {cards.length > 0 && (
-            <div className="grid md:grid-cols-3 gap-6">
-              {cards.map((card, i) => (
-                <motion.div
-                  key={card.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.1 * (i + 1) }}
-                  className="rounded-2xl border border-dark-300/50 bg-dark-100/80 backdrop-blur p-6 flex flex-col"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                    <card.icon size={22} className="text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    {card.label}
-                  </h3>
-                  <p className="text-gray-400 leading-relaxed text-sm flex-1">
-                    {card.text}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          )}
-
-          {highlights.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-            >
-              {highlights.map((h, i) => (
-                <div
-                  key={i}
-                  className="text-center p-5 rounded-2xl border border-dark-300/50 bg-dark-100/80 backdrop-blur"
-                >
-                  <p className="text-2xl md:text-3xl font-bold text-primary">
-                    {h.value}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">{h.label}</p>
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Top Row: Bio + Highlights */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Bio Card */}
+            {description && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="md:col-span-2 relative rounded-2xl border border-white/5 bg-white/[0.03] backdrop-blur-xl p-8 group overflow-hidden"
+              >
+                <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-full bg-gradient-to-b from-primary via-primary/60 to-transparent" />
+                <div className="flex items-center gap-2 mb-5">
+                  <span className="text-xs font-mono text-primary tracking-wider uppercase">
+                    who i am
+                  </span>
+                  <div className="h-px flex-1 bg-gradient-to-l from-primary/20 to-transparent" />
                 </div>
-              ))}
+                <div className="space-y-4">
+                  {description.split("\n").filter(Boolean).map((para, i) => (
+                    <p key={i} className="text-gray-300 leading-relaxed">
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Highlights Card */}
+            {highlights.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="rounded-2xl border border-white/5 bg-white/[0.03] backdrop-blur-xl p-6 flex flex-col justify-center"
+              >
+                <span className="text-xs font-mono text-primary tracking-wider uppercase mb-5 text-center">
+                  quick facts
+                </span>
+                <div className="grid grid-cols-2 gap-4">
+                  {highlights.map((h, i) => {
+                    const numeric = parseInt(h.value);
+                    const suffix = isNaN(numeric) ? "" : h.value.slice(String(numeric).length);
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4, delay: 0.15 + i * 0.08 }}
+                        className="text-center p-4 rounded-xl bg-white/[0.03] border border-white/5"
+                      >
+                        {isNaN(numeric) ? (
+                          <p className="text-2xl md:text-3xl font-bold text-primary">{h.value}</p>
+                        ) : (
+                          <AnimatedStat value={numeric} suffix={suffix} />
+                        )}
+                        <p className="text-xs text-gray-500 mt-1 leading-tight uppercase tracking-wide">
+                          {h.label}
+                        </p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Tabs Section */}
+          {tabs.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="rounded-2xl border border-white/5 bg-white/[0.03] backdrop-blur-xl overflow-hidden"
+            >
+              {/* Tab Buttons */}
+              <div className="flex border-b border-white/5">
+                {tabs.map((tab, i) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.label}
+                      onClick={() => setActiveTab(i)}
+                      className={`flex items-center gap-2 px-5 py-4 text-sm font-medium transition-all duration-300 relative ${
+                        activeTab === i
+                          ? "text-primary"
+                          : "text-gray-500 hover:text-gray-300"
+                      }`}
+                    >
+                      <Icon size={16} />
+                      <span className="hidden sm:inline">{tab.label}</span>
+                      {activeTab === i && (
+                        <motion.div
+                          layoutId="activeTab"
+                          className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-6 md:p-8">
+                <AnimatePresence mode="wait">
+                  {tabs.map(
+                    (tab, i) =>
+                      activeTab === i && (
+                        <motion.div
+                          key={tab.label}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <p className="text-gray-300 leading-relaxed">
+                            {tab.text}
+                          </p>
+                        </motion.div>
+                      )
+                  )}
+                </AnimatePresence>
+              </div>
             </motion.div>
           )}
         </div>
@@ -401,6 +515,27 @@ function AboutSection() {
 function SkillsSection() {
   const { data, isLoading, isError } = useSkills();
   const grouped = data?.data;
+  const [activeTab, setActiveTab] = useState(0);
+
+  const categories = grouped ? Object.keys(grouped) : [];
+  const categoryMeta = {
+    frontend: { icon: Code2, label: "Frontend" },
+    backend: { icon: Server, label: "Backend" },
+    database: { icon: Database, label: "Database & ORM" },
+    languages: { icon: Code2, label: "Programming Languages" },
+    tools: { icon: Wrench, label: "Tools" },
+    learning: { icon: BookOpen, label: "Currently Learning" },
+    other: { icon: Layers, label: "Other" },
+  };
+
+  const tabs = categories.map((cat) => ({
+    key: cat,
+    label: categoryMeta[cat]?.label || cat,
+    icon: categoryMeta[cat]?.icon || Layers,
+    skills: grouped[cat] || [],
+  }));
+
+  const activeSkills = tabs[activeTab]?.skills || [];
 
   return (
     <section id="skills" className="section-padding">
@@ -411,56 +546,79 @@ function SkillsSection() {
         />
         {isError && <ErrorState message="Failed to load skills" />}
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-20" />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-10">
-            {grouped &&
-              Object.entries(grouped).map(([category, skills]) => (
-                <div key={category}>
-                  <h3 className="text-sm font-semibold uppercase tracking-wider text-primary mb-4 capitalize">
-                    {category}
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {skills.map((skill, i) => (
-                      <motion.div
-                        key={skill._id}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: i * 0.05 }}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-dark-100 border border-dark-300/50"
-                      >
-                        <span className="text-lg font-mono text-primary">
-                          {skill.icon || "⚡"}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">
-                            {skill.name}
-                          </p>
-                          <div className="mt-1 h-1.5 bg-dark-300 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              whileInView={{ width: `${skill.proficiency}%` }}
-                              viewport={{ once: true }}
-                              transition={{ duration: 0.8, delay: i * 0.05 }}
-                              className="h-full bg-primary rounded-full"
-                            />
-                          </div>
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {skill.proficiency}%
-                        </span>
-                      </motion.div>
-                    ))}
-                  </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex gap-3 mb-8 justify-center">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-24 rounded-lg" />
+              ))}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-3">
+                  <Skeleton className="w-28 h-28 rounded-xl" />
+                  <Skeleton className="h-3 w-16" />
                 </div>
               ))}
+            </div>
           </div>
-        )}
+        ) : tabs.length > 0 ? (
+          <div className="max-w-4xl mx-auto">
+            {/* Tab Buttons */}
+            <div className="flex justify-center gap-2 mb-10">
+              {tabs.map((tab, i) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(i)}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      activeTab === i
+                        ? "bg-primary/10 text-primary border border-primary/30"
+                        : "text-gray-500 hover:text-gray-300 hover:bg-white/5 border border-transparent"
+                    }`}
+                  >
+                    <Icon size={16} />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Tab Content */}
+            <AnimatePresence mode="wait">
+              {tabs.map(
+                (tab, i) =>
+                  activeTab === i && (
+                    <motion.div
+                      key={tab.key}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -12 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+                    >
+                      {tab.skills.map((skill, j) => (
+                        <motion.div
+                          key={skill._id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.3, delay: j * 0.04 }}
+                          className="flex flex-col items-center group"
+                        >
+                          <div className="w-28 h-28 rounded-xl bg-dark-100/80 border border-dark-300/50 flex items-center justify-center group-hover:border-primary/40 group-hover:shadow-[0_0_20px_-5px] group-hover:shadow-primary/30 transition-all duration-300">
+                            <SkillIcon name={skill.icon} size={48} className="text-primary" />
+                          </div>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mt-3 text-center group-hover:text-white transition-colors duration-300">
+                            {skill.name}
+                          </p>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )
+              )}
+            </AnimatePresence>
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -703,6 +861,102 @@ function ExperienceSection() {
               </motion.div>
             ))}
           </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function CertificationsSection() {
+  const { data, isLoading, isError } = useCertifications({});
+  const allCertifications = data?.data || [];
+  const [showAll, setShowAll] = useState(false);
+  const visibleCount = 3;
+  const hasMore = allCertifications.length > visibleCount;
+  const visibleCerts = showAll ? allCertifications : allCertifications.slice(0, visibleCount);
+
+  return (
+    <section id="certifications" className="section-padding bg-dark-100/50">
+      <div className="container-custom">
+        <SectionHeading
+          title="Certifications"
+          subtitle="Credentials and achievements I've earned"
+        />
+        {isError && <ErrorState message="Failed to load certifications" />}
+        {isLoading ? (
+          <div className="grid md:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-48" />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {visibleCerts.map((cert, i) => (
+                <motion.div
+                  key={cert._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: i * 0.08 }}
+                  className="group rounded-2xl border border-dark-300/50 bg-dark-100/80 backdrop-blur p-6 flex flex-col hover:border-primary/30 transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    {cert.image ? (
+                      <img
+                        src={cert.image}
+                        alt={cert.title}
+                        className="w-14 h-14 rounded-xl object-cover"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Award size={24} className="text-primary" />
+                      </div>
+                    )}
+                    {cert.featured && (
+                      <span className="text-[10px] font-medium text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full">
+                        ★ Featured
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-white font-semibold text-sm leading-snug mb-1">
+                    {cert.title}
+                  </h3>
+                  <p className="text-primary text-sm mb-2">{cert.issuer}</p>
+                  <p className="text-xs text-gray-500 mb-4">
+                    {formatDate(cert.issueDate)}
+                  </p>
+                  <div className="mt-auto">
+                    {cert.credentialUrl && (
+                      <a
+                        href={cert.credentialUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                      >
+                        View Credential <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {hasMore && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => setShowAll((prev) => !prev)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/10 transition-colors"
+                >
+                  {showAll ? (
+                    <>Show Less <ChevronUp size={16} /></>
+                  ) : (
+                    <>Show More ({allCertifications.length - visibleCount}) <ChevronDown size={16} /></>
+                  )}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

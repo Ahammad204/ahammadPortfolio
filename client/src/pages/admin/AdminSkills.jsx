@@ -14,7 +14,6 @@ const schema = z.object({
   name: z.string().min(1, 'Required'),
   icon: z.string().optional(),
   category: z.string(),
-  proficiency: z.coerce.number().min(1).max(100),
   order: z.coerce.number().optional(),
 });
 
@@ -28,10 +27,10 @@ export default function AdminSkills() {
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { category: 'frontend', proficiency: 50, order: 0 },
+    defaultValues: { category: 'frontend', order: 0 },
   });
 
-  const openNew = () => { reset({ name: '', icon: '', category: 'frontend', proficiency: 50, order: 0 }); setEditing('new'); };
+  const openNew = () => { reset({ name: '', icon: '', category: 'frontend', order: 0 }); setEditing('new'); };
   const openEdit = (skill) => { reset(skill); setEditing(skill); };
   const close = () => { setEditing(null); reset(); };
 
@@ -74,12 +73,11 @@ export default function AdminSkills() {
             <h3 className="text-sm font-medium text-white">{editing === 'new' ? 'New Skill' : 'Edit Skill'}</h3>
             <button onClick={close} className="text-gray-400 hover:text-white"><X size={16} /></button>
           </div>
-          <form onSubmit={handleSubmit(onSubmit)} className="grid sm:grid-cols-5 gap-3 items-end">
+          <form onSubmit={handleSubmit(onSubmit)} className="grid sm:grid-cols-4 gap-3 items-end">
             <div><input {...register('name')} placeholder="Name" className={inputCls} />{errors.name && <p className="text-xs text-red-400">{errors.name.message}</p>}</div>
-            <div><input {...register('icon')} placeholder="Icon (e.g. SiReact)" className={inputCls} /></div>
+            <div><input {...register('icon')} placeholder='Icon — e.g. "SiReact", "SiJavascript"' className={inputCls} /></div>
             <div><select {...register('category')} className={inputCls}>{SKILL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-            <div><input type="number" {...register('proficiency')} placeholder="1-100" className={inputCls} /></div>
-            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 disabled:opacity-50">
+            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-primary text-sm text-white rounded-lg hover:bg-primary/90 disabled:opacity-50">
               {isSubmitting ? '...' : 'Save'}
             </button>
           </form>
@@ -96,7 +94,6 @@ export default function AdminSkills() {
                   <div key={s._id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#13161d] border border-[#1e2330] group">
                     <span className="text-sm text-gray-500 w-6">{s.order}</span>
                     <span className="text-sm text-white flex-1">{s.name}</span>
-                    <span className="text-xs text-gray-500">{s.proficiency}%</span>
                     <button onClick={() => openEdit(s)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-primary"><Pencil size={14} /></button>
                     <button onClick={() => setDeleteId(s._id)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400"><Trash2 size={14} /></button>
                   </div>

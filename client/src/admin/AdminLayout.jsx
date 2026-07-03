@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, User, FolderKanban, Zap, Briefcase, GraduationCap, Mail, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, User, FolderKanban, Zap, Briefcase, GraduationCap, Award, Mail, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/admin/skills', icon: Zap, label: 'Skills' },
   { to: '/admin/experience', icon: Briefcase, label: 'Experience' },
   { to: '/admin/education', icon: GraduationCap, label: 'Education' },
+  { to: '/admin/certifications', icon: Award, label: 'Certifications' },
   { to: '/admin/messages', icon: Mail, label: 'Messages' },
 ];
 

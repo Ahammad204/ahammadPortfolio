@@ -4,6 +4,7 @@ import { getProjects, getProjectBySlug } from '../api/projects';
 import { getSkills } from '../api/skills';
 import { getExperience } from '../api/experience';
 import { getEducation } from '../api/education';
+import { getCertifications } from '../api/certifications';
 import api from '../api/axios';
 
 export const useProfile = () =>
@@ -33,3 +34,6 @@ export const useExperience = () =>
 
 export const useEducation = () =>
   useQuery({ queryKey: ['education'], queryFn: getEducation });
+
+export const useCertifications = (params) =>
+  useQuery({ queryKey: ['certifications', params], queryFn: () => getCertifications(params) });
