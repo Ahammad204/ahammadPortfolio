@@ -884,9 +884,9 @@ function CertificationsSection() {
         />
         {isError && <ErrorState message="Failed to load certifications" />}
         {isLoading ? (
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-48" />
+              <Skeleton key={i} className="h-64" />
             ))}
           </div>
         ) : (
@@ -898,62 +898,75 @@ function CertificationsSection() {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.08 }}
-                  className="group rounded-2xl border border-dark-300/50 bg-dark-100/80 backdrop-blur p-6 flex flex-col hover:border-primary/30 transition-all duration-300"
+                  transition={{ duration: 0.3, delay: i * 0.08, type: "spring", stiffness: 300, damping: 20 }}
+                  className="group relative rounded-2xl border border-dark-300/50 bg-dark-100/60 backdrop-blur-xl overflow-hidden hover:border-primary/50 transition-all duration-300"
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  {/* Banner Image Section (aspect-video like FeaturedProjects) */}
+                  <div className="aspect-video overflow-hidden bg-dark-200 relative">
                     {cert.image ? (
                       <img
                         src={cert.image}
                         alt={cert.title}
-                        className="w-14 h-14 rounded-xl object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Award size={24} className="text-primary" />
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-purple-500/20">
+                        <Award size={48} className="text-primary" />
                       </div>
                     )}
                     {cert.featured && (
-                      <span className="text-[10px] font-medium text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full">
+                      <span className="absolute top-3 right-3 text-[10px] font-medium text-yellow-400 bg-yellow-400/90 px-2 py-0.5 rounded-full backdrop-blur-sm">
                         ★ Featured
                       </span>
                     )}
                   </div>
-                  <h3 className="text-white font-semibold text-sm leading-snug mb-1">
-                    {cert.title}
-                  </h3>
-                  <p className="text-primary text-sm mb-2">{cert.issuer}</p>
-                  <p className="text-xs text-gray-500 mb-4">
-                    {formatDate(cert.issueDate)}
-                  </p>
-                  <div className="mt-auto">
-                    {cert.credentialUrl && (
-                      <a
-                        href={cert.credentialUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
-                      >
-                        View Credential <ExternalLink size={12} />
-                      </a>
-                    )}
+                  
+                  {/* Content Section (padded below banner) */}
+                  <div className="p-6 space-y-4">
+                    <h3 className="text-white font-semibold text-base leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                      {cert.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <Award size={14} className="text-primary/70" />
+                      <span>{cert.issuer}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Calendar size={12} />
+                      <span>{formatDate(cert.issueDate)}</span>
+                    </div>
+                    
+                    <div className="pt-2">
+                      {cert.credentialUrl && (
+                        <a
+                          href={cert.credentialUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group/btn inline-flex items-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-primary/10 to-purple-500/10 text-primary font-medium rounded-lg hover:from-primary hover:to-purple-600 hover:text-white transition-all duration-300"
+                        >
+                          <ExternalLink size={14} className="group-hover/btn:rotate-12 transition-transform" />
+                          <span>View Credential</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               ))}
             </div>
 
             {hasMore && (
-              <div className="mt-8 text-center">
-                <button
+              <div className="mt-10 text-center">
+                <motion.button
                   onClick={() => setShowAll((prev) => !prev)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/10 transition-colors"
+                  className="group inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/10 hover:border-primary/50 hover:shadow-md transition-all duration-300"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {showAll ? (
-                    <>Show Less <ChevronUp size={16} /></>
+                    <>Show Less <ChevronUp size={16} className="group-hover:-translate-y-0.5 transition-transform" /></>
                   ) : (
-                    <>Show More ({allCertifications.length - visibleCount}) <ChevronDown size={16} /></>
+                    <>Show More ({allCertifications.length - visibleCount}) <ChevronDown size={16} className="group-hover:translate-y-0.5 transition-transform" /></>
                   )}
-                </button>
+                </motion.button>
               </div>
             )}
           </>
