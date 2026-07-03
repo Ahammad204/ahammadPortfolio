@@ -5,7 +5,7 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { Upload } from "lucide-react";
 import { useProfile } from "../../hooks/usePortfolio";
-import { updateProfile, uploadAvatar, uploadResume } from "../../api/profile";
+import { updateProfile, uploadAvatar, updateResume } from "../../api/profile";
 import { useQueryClient } from "@tanstack/react-query";
 
 const schema = z.object({
@@ -31,7 +31,8 @@ export default function AdminProfile() {
   const qc = useQueryClient();
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [resumeName, setResumeName] = useState("");
+  const [resumeUrl, setResumeUrl] = useState("");
+  const [savingResume, setSavingResume] = useState(false);
 
   const {
     register,
@@ -59,6 +60,7 @@ export default function AdminProfile() {
         "socialLinks.website": profile.socialLinks?.website || "",
       });
       setAvatarPreview(profile.avatar);
+      setResumeUrl(profile.resume || "");
     }
   }, [profile, reset]);
 
@@ -86,21 +88,35 @@ export default function AdminProfile() {
     }
   };
 
-  const handleFileUpload = async (e, type) => {
+  const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (type === "resume") setResumeName(file.name);
     setUploading(true);
     try {
-      const fn = type === "avatar" ? uploadAvatar : uploadResume;
-      const { data } = await fn(file);
-      if (type === "avatar") setAvatarPreview(data.data.avatar);
+      const { data } = await uploadAvatar(file);
+      setAvatarPreview(data.data.avatar);
       qc.invalidateQueries({ queryKey: ["profile"] });
-      toast.success(`${type === "avatar" ? "Avatar" : "Resume"} updated`);
+      toast.success("Avatar updated");
     } catch {
       toast.error("Upload failed");
     }
     setUploading(false);
+  };
+
+  const handleResumeSave = async () => {
+    if (!resumeUrl.trim()) {
+      toast.error("Please enter a Google Drive link");
+      return;
+    }
+    setSavingResume(true);
+    try {
+      await updateResume(resumeUrl.trim());
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Resume link updated");
+    } catch {
+      toast.error("Failed to save resume link");
+    }
+    setSavingResume(false);
   };
 
   if (isLoading) return <div className="text-gray-500">Loading...</div>;
@@ -130,17 +146,17 @@ export default function AdminProfile() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => handleFileUpload(e, "avatar")}
+                onChange={handleAvatarUpload}
                 disabled={uploading}
               />
             </label>
           </div>
           <div className="p-4 rounded-xl bg-[#1a1e2a] border border-[#2a2f3d]">
-            <p className={labelCls}>Resume (PDF)</p>
-            {profile?.resume ? (
+            <p className={labelCls}>Resume (Google Drive Link)</p>
+            {profile?.resume && (
               <div className="mb-2">
                 <span className="text-xs text-green-400 mr-3">
-                  ✅ Resume uploaded
+                  ✅ Resume linked
                 </span>
                 <a
                   href={profile.resume}
@@ -151,26 +167,21 @@ export default function AdminProfile() {
                   View / Download CV
                 </a>
               </div>
-            ) : (
-              <span className="text-xs text-gray-400 block mb-2">
-                No resume uploaded yet
-              </span>
             )}
-            {resumeName && (
-              <div className="text-xs text-gray-300 mb-2">
-                Selected: {resumeName}
-              </div>
-            )}
-            <label className="inline-flex items-center gap-2 px-3 py-2 text-xs bg-[#2a2f3d] rounded-lg cursor-pointer hover:bg-[#333a4a] transition-colors">
-              <Upload size={14} /> Upload
-              <input
-                type="file"
-                accept=".pdf"
-                className="hidden"
-                onChange={(e) => handleFileUpload(e, "resume")}
-                disabled={uploading}
-              />
-            </label>
+            <input
+              type="url"
+              placeholder="https://drive.google.com/file/d/..."
+              value={resumeUrl}
+              onChange={(e) => setResumeUrl(e.target.value)}
+              className={`${inputCls} mb-2`}
+            />
+            <button
+              onClick={handleResumeSave}
+              disabled={savingResume}
+              className="inline-flex items-center gap-2 px-3 py-2 text-xs bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors text-white"
+            >
+              {savingResume ? "Saving..." : "Save Link"}
+            </button>
           </div>
         </div>
 

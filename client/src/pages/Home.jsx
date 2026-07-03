@@ -8,6 +8,10 @@ import {
   ArrowRight,
   ExternalLink,
   Github,
+  Linkedin,
+  Twitter,
+  Youtube,
+  Globe,
   MapPin,
   Calendar,
   Download,
@@ -212,6 +216,60 @@ function HeroSection() {
                   </a>
                 )}
               </div>
+              {profile?.socialLinks && (
+                <div className="mt-6 flex gap-4">
+                  {profile.socialLinks.github && (
+                    <a
+                      href={profile.socialLinks.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Github size={20} />
+                    </a>
+                  )}
+                  {profile.socialLinks.linkedin && (
+                    <a
+                      href={profile.socialLinks.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Linkedin size={20} />
+                    </a>
+                  )}
+                  {profile.socialLinks.twitter && (
+                    <a
+                      href={profile.socialLinks.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Twitter size={20} />
+                    </a>
+                  )}
+                  {profile.socialLinks.youtube && (
+                    <a
+                      href={profile.socialLinks.youtube}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Youtube size={20} />
+                    </a>
+                  )}
+                  {profile.socialLinks.website && (
+                    <a
+                      href={profile.socialLinks.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Globe size={20} />
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Avatar */}

@@ -7,8 +7,6 @@ export const uploadAvatar = (file) => {
   fd.append('avatar', file);
   return api.post('/profile/avatar', fd);
 };
-export const uploadResume = (file) => {
-  const fd = new FormData();
-  fd.append('resume', file);
-  return api.post('/profile/resume', fd);
+export const updateResume = (resumeUrl) => {
+  return api.put('/profile/resume', { resumeUrl });
 };

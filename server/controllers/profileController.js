@@ -1,19 +1,6 @@
 const Profile = require("../models/Profile");
 const cloudinary = require("../config/cloudinary");
 
-// Helper: extract Cloudinary public_id from a raw or image upload URL
-function extractPublicIdFromRawUrl(url) {
-  try {
-    if (!url) return null;
-    const clean = url.split("?")[0];
-    const match = clean.match(/\/(?:image|raw)\/upload\/(?:v\d+\/)?(.+)$/);
-    if (!match) return null;
-    return match[1].replace(/\.[^/.]+$/, "");
-  } catch (e) {
-    return null;
-  }
-}
-
 // GET /api/profile — public
 exports.getProfile = async (req, res) => {
   try {
@@ -26,15 +13,7 @@ exports.getProfile = async (req, res) => {
           message: "Profile not found",
           error: "No profile exists",
         });
-    // Return clean URLs stored in MongoDB
     const out = profile.toObject ? profile.toObject() : { ...profile };
-    if (out.resume) {
-      // Append fl_attachment to force browser download with the desired filename
-      out.resume = out.resume.replace(
-        "/upload/",
-        "/upload/fl_attachment:Kazi_Ahammad_Resume/"
-      );
-    }
     res.json({ success: true, data: out });
   } catch (err) {
     res
@@ -49,7 +28,7 @@ exports.updateProfile = async (req, res) => {
     const data = { ...req.body };
     if (typeof data.socialLinks === "string")
       data.socialLinks = JSON.parse(data.socialLinks);
-    const profile = await Profile.findOneAndUpdate({}, data, {
+    const profile = await Profile.findOneAndUpdate({}, { $set: data }, {
       new: true,
       upsert: true,
       runValidators: true,
@@ -89,26 +68,17 @@ exports.uploadAvatar = async (req, res) => {
   }
 };
 
-// POST /api/profile/resume — protected
-exports.uploadResume = async (req, res) => {
+// PUT /api/profile/resume — protected
+exports.updateResume = async (req, res) => {
   try {
-    if (!req.file) {
+    const { resumeUrl } = req.body;
+    if (!resumeUrl) {
       return res.status(400).json({
         success: false,
-        message: "No file",
-        error: "Resume file required",
+        message: "No URL",
+        error: "Resume URL required",
       });
     }
-
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "portfolio/profile",
-      resource_type: "image",
-      format: "pdf",
-      public_id: `resume_${Date.now()}`,
-      pages: true,
-    });
-
-    const resumeUrl = result.secure_url;
 
     const profile = await Profile.findOneAndUpdate(
       {},
@@ -118,12 +88,12 @@ exports.uploadResume = async (req, res) => {
 
     res.json({
       success: true,
-      data: { resume: resumeUrl },
+      data: { resume: profile.resume },
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: "Upload failed",
+      message: "Update failed",
       error: err.message,
     });
   }
