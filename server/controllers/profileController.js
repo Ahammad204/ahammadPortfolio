@@ -26,8 +26,13 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const data = { ...req.body };
-    if (typeof data.socialLinks === "string")
-      data.socialLinks = JSON.parse(data.socialLinks);
+    if (typeof data.socialLinks === "string") {
+      try {
+        data.socialLinks = JSON.parse(data.socialLinks);
+      } catch (e) {
+        console.error("Failed to parse socialLinks:", e);
+      }
+    }
     const profile = await Profile.findOneAndUpdate({}, { $set: data }, {
       new: true,
       upsert: true,

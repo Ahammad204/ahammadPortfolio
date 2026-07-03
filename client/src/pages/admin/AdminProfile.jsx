@@ -20,13 +20,18 @@ const schema = z.object({
   openToWork: z.boolean().optional(),
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
-  "socialLinks.github": z.string().optional(),
-  "socialLinks.linkedin": z.string().optional(),
-  "socialLinks.twitter": z.string().optional(),
-  "socialLinks.youtube": z.string().optional(),
-  "socialLinks.website": z.string().optional(),
+  socialLinks: z.object({
+    github: z.string().optional(),
+    linkedin: z.string().optional(),
+    twitter: z.string().optional(),
+    youtube: z.string().optional(),
+    website: z.string().optional(),
+  }).optional(),
   aboutTitle: z.string().optional(),
   aboutDescription: z.string().optional(),
+  programmingJourney: z.string().optional(),
+  workEnjoy: z.string().optional(),
+  hobbiesInterests: z.string().optional(),
 });
 
 export default function AdminProfile() {
@@ -37,8 +42,6 @@ export default function AdminProfile() {
   const [uploading, setUploading] = useState(false);
   const [resumeUrl, setResumeUrl] = useState("");
   const [savingResume, setSavingResume] = useState(false);
-  const [aboutImagePreview, setAboutImagePreview] = useState(null);
-  const [uploadingAbout, setUploadingAbout] = useState(false);
   const [highlights, setHighlights] = useState([]);
 
   const {
@@ -62,17 +65,21 @@ export default function AdminProfile() {
         openToWork: profile.openToWork ?? false,
         seoTitle: profile.seoTitle || "",
         seoDescription: profile.seoDescription || "",
-        "socialLinks.github": profile.socialLinks?.github || "",
-        "socialLinks.linkedin": profile.socialLinks?.linkedin || "",
-        "socialLinks.twitter": profile.socialLinks?.twitter || "",
-        "socialLinks.youtube": profile.socialLinks?.youtube || "",
-        "socialLinks.website": profile.socialLinks?.website || "",
+        socialLinks: {
+          github: profile.socialLinks?.github || "",
+          linkedin: profile.socialLinks?.linkedin || "",
+          twitter: profile.socialLinks?.twitter || "",
+          youtube: profile.socialLinks?.youtube || "",
+          website: profile.socialLinks?.website || "",
+        },
         aboutTitle: profile.aboutTitle || "",
         aboutDescription: profile.aboutDescription || "",
+        programmingJourney: profile.programmingJourney || "",
+        workEnjoy: profile.workEnjoy || "",
+        hobbiesInterests: profile.hobbiesInterests || "",
       });
       setAvatarPreview(profile.avatar);
       setResumeUrl(profile.resume || "");
-      setAboutImagePreview(profile.aboutImage || null);
       setHighlights(
         profile.aboutHighlights?.length
           ? profile.aboutHighlights
@@ -86,21 +93,19 @@ export default function AdminProfile() {
       const payload = {
         ...values,
         socialLinks: {
-          github: values["socialLinks.github"],
-          linkedin: values["socialLinks.linkedin"],
-          twitter: values["socialLinks.twitter"],
-          youtube: values["socialLinks.youtube"],
-          website: values["socialLinks.website"],
+          github: values.socialLinks?.github || "",
+          linkedin: values.socialLinks?.linkedin || "",
+          twitter: values.socialLinks?.twitter || "",
+          youtube: values.socialLinks?.youtube || "",
+          website: values.socialLinks?.website || "",
         },
         aboutHighlights: highlights.filter((h) => h.value.trim() || h.label.trim()),
       };
-      Object.keys(payload)
-        .filter((k) => k.startsWith("socialLinks."))
-        .forEach((k) => delete payload[k]);
       await updateProfile(payload);
       qc.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Profile updated");
-    } catch {
+    } catch (error) {
+      console.error("Profile update error:", error);
       toast.error("Update failed");
     }
   };
@@ -134,23 +139,6 @@ export default function AdminProfile() {
       toast.error("Failed to save resume link");
     }
     setSavingResume(false);
-  };
-
-  const handleAboutImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingAbout(true);
-    try {
-      const { data } = await uploadAvatar(file);
-      const aboutImageUrl = data.data.avatar;
-      await updateProfile({ aboutImage: aboutImageUrl });
-      setAboutImagePreview(aboutImageUrl);
-      qc.invalidateQueries({ queryKey: ["profile"] });
-      toast.success("About image updated");
-    } catch {
-      toast.error("Upload failed");
-    }
-    setUploadingAbout(false);
   };
 
   const addHighlight = () => {
@@ -291,31 +279,38 @@ export default function AdminProfile() {
                 />
               </div>
               <div>
-                <label className={labelCls}>About Image</label>
-                {aboutImagePreview && (
-                  <img
-                    src={aboutImagePreview}
-                    alt="About"
-                    className="w-20 h-20 rounded-lg object-cover mb-2"
-                  />
-                )}
-                <label className="inline-flex items-center gap-2 px-3 py-2 text-xs bg-[#2a2f3d] rounded-lg cursor-pointer hover:bg-[#333a4a] transition-colors">
-                  <Upload size={14} /> {aboutImagePreview ? "Change Image" : "Upload Image"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAboutImageUpload}
-                    disabled={uploadingAbout}
-                  />
-                </label>
-              </div>
-              <div>
                 <label className={labelCls}>About Description</label>
                 <textarea
                   {...register("aboutDescription")}
                   rows={5}
-                  placeholder="Write about yourself, your programming journey, interests, hobbies..."
+                  placeholder="Write a short introduction about yourself..."
+                  className={`${inputCls} resize-none`}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Programming Journey</label>
+                <textarea
+                  {...register("programmingJourney")}
+                  rows={3}
+                  placeholder="Share your programming journey, how you started, milestones..."
+                  className={`${inputCls} resize-none`}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Work I Enjoy</label>
+                <textarea
+                  {...register("workEnjoy")}
+                  rows={3}
+                  placeholder="What type of projects and work you enjoy most..."
+                  className={`${inputCls} resize-none`}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Hobbies & Interests</label>
+                <textarea
+                  {...register("hobbiesInterests")}
+                  rows={3}
+                  placeholder="Your hobbies and interests outside of programming..."
                   className={`${inputCls} resize-none`}
                 />
               </div>

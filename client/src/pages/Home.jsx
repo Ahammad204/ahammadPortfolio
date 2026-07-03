@@ -19,6 +19,9 @@ import {
   Mail,
   Phone,
   MessageCircle,
+  Code2,
+  Briefcase,
+  Heart,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -198,31 +201,6 @@ function HeroSection() {
                 {profile?.bio ||
                   "Passionate about building scalable applications with clean code and great user experiences."}
               </p>
-              <div className="mt-8 flex flex-wrap gap-4">
-                <a
-                  href="#projects"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  View Work <ArrowRight size={18} />
-                </a>
-                <a
-                  href="#contact"
-                  className="inline-flex items-center gap-2 px-6 py-3 border border-dark-300 text-gray-300 font-medium rounded-lg hover:border-primary hover:text-primary transition-colors"
-                >
-                  Contact Me
-                </a>
-                {profile?.resume && (
-                  <a
-                    href={profile.resume}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 border border-blue-500 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all duration-200"
-                  >
-                    <Download size={16} />
-                    Download CV
-                  </a>
-                )}
-              </div>
               {profile?.socialLinks && (
                 <div className="mt-6 flex gap-4">
                   {profile.socialLinks.github && (
@@ -277,6 +255,31 @@ function HeroSection() {
                   )}
                 </div>
               )}
+              <div className="mt-8 flex flex-wrap gap-4">
+                <a
+                  href="#projects"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  View Work <ArrowRight size={18} />
+                </a>
+                <a
+                  href="#contact"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-dark-300 text-gray-300 font-medium rounded-lg hover:border-primary hover:text-primary transition-colors"
+                >
+                  Contact Me
+                </a>
+                {profile?.resume && (
+                  <a
+                    href={profile.resume}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 border border-blue-500 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all duration-200"
+                  >
+                    <Download size={16} />
+                    Download CV
+                  </a>
+                )}
+              </div>
             </div>
 
             {/* Avatar */}
@@ -309,55 +312,86 @@ function AboutSection() {
 
   const title = profile?.aboutTitle || "About Me";
   const description = profile?.aboutDescription || profile?.bio || "";
-  const image = profile?.aboutImage || profile?.avatar;
   const highlights = profile?.aboutHighlights || [];
+  const programmingJourney = profile?.programmingJourney || "";
+  const workEnjoy = profile?.workEnjoy || "";
+  const hobbiesInterests = profile?.hobbiesInterests || "";
 
-  if (!description && !image && highlights.length === 0) return null;
+  if (!description && highlights.length === 0 && !programmingJourney && !workEnjoy && !hobbiesInterests) return null;
+
+  const cards = [
+    { icon: Code2, label: "Programming Journey", text: programmingJourney },
+    { icon: Briefcase, label: "Work I Enjoy", text: workEnjoy },
+    { icon: Heart, label: "Hobbies & Interests", text: hobbiesInterests },
+  ].filter((c) => c.text);
 
   return (
     <section id="about" className="section-padding">
       <div className="container-custom">
         <SectionHeading title={title} subtitle="A little bit about myself" />
-        <div className="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
-          {image && (
+        <div className="max-w-5xl mx-auto space-y-8">
+          {description && (
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.5 }}
+              className="rounded-2xl border border-dark-300/50 bg-dark-100/80 backdrop-blur p-8"
             >
-              <img
-                src={image}
-                alt={title}
-                className="w-full max-w-md rounded-2xl object-cover shadow-lg mx-auto"
-              />
+              {description.split("\n").filter(Boolean).map((para, i) => (
+                <p key={i} className="text-gray-400 leading-relaxed">
+                  {para}
+                </p>
+              ))}
             </motion.div>
           )}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="space-y-6"
-          >
-            {description.split("\n").filter(Boolean).map((para, i) => (
-              <p key={i} className="text-gray-400 leading-relaxed">
-                {para}
-              </p>
-            ))}
-            {highlights.length > 0 && (
-              <div className="grid grid-cols-3 gap-4 pt-4">
-                {highlights.map((h, i) => (
-                  <div key={i} className="text-center p-4 rounded-lg bg-dark-100 border border-dark-300/50">
-                    <p className="text-2xl md:text-3xl font-bold text-primary">
-                      {h.value}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">{h.label}</p>
+
+          {cards.length > 0 && (
+            <div className="grid md:grid-cols-3 gap-6">
+              {cards.map((card, i) => (
+                <motion.div
+                  key={card.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 * (i + 1) }}
+                  className="rounded-2xl border border-dark-300/50 bg-dark-100/80 backdrop-blur p-6 flex flex-col"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                    <card.icon size={22} className="text-primary" />
                   </div>
-                ))}
-              </div>
-            )}
-          </motion.div>
+                  <h3 className="text-lg font-semibold text-white mb-3">
+                    {card.label}
+                  </h3>
+                  <p className="text-gray-400 leading-relaxed text-sm flex-1">
+                    {card.text}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {highlights.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+            >
+              {highlights.map((h, i) => (
+                <div
+                  key={i}
+                  className="text-center p-5 rounded-2xl border border-dark-300/50 bg-dark-100/80 backdrop-blur"
+                >
+                  <p className="text-2xl md:text-3xl font-bold text-primary">
+                    {h.value}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">{h.label}</p>
+                </div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </div>
     </section>
@@ -439,10 +473,7 @@ function EducationSection() {
   return (
     <section id="education" className="section-padding bg-dark-100/50">
       <div className="container-custom">
-        <SectionHeading
-          title="Education"
-          subtitle="My academic background"
-        />
+        <SectionHeading title="Education" subtitle="My academic background" />
         {isError && <ErrorState message="Failed to load education" />}
         {isLoading ? (
           <div className="space-y-6">
@@ -471,19 +502,30 @@ function EducationSection() {
                       <Calendar size={12} />
                       <span>
                         {formatDate(edu.startDate)} —{" "}
-                        {edu.current ? "Present" : edu.endDate ? formatDate(edu.endDate) : "Present"}
+                        {edu.current
+                          ? "Present"
+                          : edu.endDate
+                            ? formatDate(edu.endDate)
+                            : "Present"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <GraduationCap size={16} className="text-primary" />
-                      <h3 className="text-white font-semibold">{edu.degree}{edu.field ? ` in ${edu.field}` : ""}</h3>
+                      <h3 className="text-white font-semibold">
+                        {edu.degree}
+                        {edu.field ? ` in ${edu.field}` : ""}
+                      </h3>
                     </div>
                     <p className="text-primary text-sm">{edu.institution}</p>
                     {edu.cgpa && (
-                      <p className="text-xs text-gray-400 mt-1">CGPA: {edu.cgpa}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        CGPA: {edu.cgpa}
+                      </p>
                     )}
                     {edu.description && (
-                      <p className="mt-2 text-sm text-gray-400">{edu.description}</p>
+                      <p className="mt-2 text-sm text-gray-400">
+                        {edu.description}
+                      </p>
                     )}
                   </div>
                 </div>
