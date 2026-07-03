@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import AdminLayout from './admin/AdminLayout';
 
 // Public pages
@@ -55,6 +56,7 @@ export default function App() {
           </Route>
         </Routes>
       </main>
+      {!isAdmin && <Footer />}
     </>
   );
 }
