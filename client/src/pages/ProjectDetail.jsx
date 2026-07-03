@@ -93,6 +93,22 @@ export default function ProjectDetail() {
                   {project.longDescription}
                 </div>
               )}
+              {project.challenges && (
+                <div className="mt-8">
+                  <h2 className="text-xl font-semibold text-white mb-3">Challenges Faced</h2>
+                  <div className="text-gray-400 leading-relaxed whitespace-pre-line">
+                    {project.challenges}
+                  </div>
+                </div>
+              )}
+              {project.improvements && (
+                <div className="mt-8">
+                  <h2 className="text-xl font-semibold text-white mb-3">Improvements & Future Plans</h2>
+                  <div className="text-gray-400 leading-relaxed whitespace-pre-line">
+                    {project.improvements}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Sidebar */}

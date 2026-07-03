@@ -15,6 +15,8 @@ const projectSchema = new mongoose.Schema({
   order: { type: Number, default: 0 },
   category: { type: String, enum: ['fullstack', 'frontend', 'backend', 'iot', 'other'], default: 'other' },
   status: { type: String, enum: ['completed', 'in-progress', 'archived'], default: 'completed' },
+  challenges: { type: String },
+  improvements: { type: String },
 }, { timestamps: true });
 
 // Auto-generate slug from title before saving

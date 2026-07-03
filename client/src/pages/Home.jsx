@@ -16,6 +16,9 @@ import {
   Calendar,
   Download,
   GraduationCap,
+  Mail,
+  Phone,
+  MessageCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -665,6 +668,8 @@ function ExperienceSection() {
 }
 
 function ContactSection() {
+  const { data } = useProfile();
+  const profile = data?.data;
   const {
     register,
     handleSubmit,
@@ -684,6 +689,9 @@ function ContactSection() {
     }
   };
 
+  const inputCls =
+    "w-full px-4 py-3 bg-dark-100 border border-dark-300 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors";
+
   return (
     <section id="contact" className="section-padding bg-dark-100/50">
       <div className="container-custom">
@@ -691,72 +699,151 @@ function ContactSection() {
           title="Get In Touch"
           subtitle="Have a project in mind? Let's talk."
         />
-        <motion.form
-          onSubmit={handleSubmit(onSubmit)}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-xl mx-auto space-y-5"
-        >
-          <div className="grid sm:grid-cols-2 gap-5">
-            <div>
-              <input
-                {...register("name")}
-                placeholder="Your Name"
-                className="w-full px-4 py-3 bg-dark-100 border border-dark-300 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors"
-              />
-              {errors.name && (
-                <p className="mt-1 text-xs text-red-400">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <input
-                {...register("email")}
-                placeholder="Email Address"
-                className="w-full px-4 py-3 bg-dark-100 border border-dark-300 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors"
-              />
-              {errors.email && (
-                <p className="mt-1 text-xs text-red-400">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-          </div>
-          <div>
-            <input
-              {...register("subject")}
-              placeholder="Subject"
-              className="w-full px-4 py-3 bg-dark-100 border border-dark-300 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors"
-            />
-            {errors.subject && (
-              <p className="mt-1 text-xs text-red-400">
-                {errors.subject.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <textarea
-              {...register("message")}
-              rows={5}
-              placeholder="Your Message"
-              className="w-full px-4 py-3 bg-dark-100 border border-dark-300 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors resize-none"
-            />
-            {errors.message && (
-              <p className="mt-1 text-xs text-red-400">
-                {errors.message.message}
-              </p>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+        <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
+          {/* Contact Info */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="space-y-8"
           >
-            {isSubmitting ? "Sending..." : "Send Message"}
-          </button>
-        </motion.form>
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Contact Information
+              </h3>
+              <p className="text-gray-400">
+                Feel free to reach out through any of the following channels.
+              </p>
+            </div>
+            <div className="space-y-5">
+              {profile?.email && (
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-dark-100 border border-dark-300/50 hover:border-primary/50 transition-colors group"
+                >
+                  <div className="p-3 rounded-lg bg-primary/10 text-primary">
+                    <Mail size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Email</p>
+                    <p className="text-white group-hover:text-primary transition-colors">
+                      {profile.email}
+                    </p>
+                  </div>
+                </a>
+              )}
+              {profile?.phone && (
+                <a
+                  href={`tel:${profile.phone}`}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-dark-100 border border-dark-300/50 hover:border-primary/50 transition-colors group"
+                >
+                  <div className="p-3 rounded-lg bg-primary/10 text-primary">
+                    <Phone size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Phone</p>
+                    <p className="text-white group-hover:text-primary transition-colors">
+                      {profile.phone}
+                    </p>
+                  </div>
+                </a>
+              )}
+              {profile?.whatsapp && (
+                <a
+                  href={`https://wa.me/${profile.whatsapp.replace(/[^0-9]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 p-4 rounded-xl bg-dark-100 border border-dark-300/50 hover:border-primary/50 transition-colors group"
+                >
+                  <div className="p-3 rounded-lg bg-primary/10 text-primary">
+                    <MessageCircle size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">WhatsApp</p>
+                    <p className="text-white group-hover:text-primary transition-colors">
+                      {profile.whatsapp}
+                    </p>
+                  </div>
+                </a>
+              )}
+              {!profile?.email && !profile?.phone && !profile?.whatsapp && (
+                <p className="text-gray-500 text-sm">
+                  Contact information not configured yet.
+                </p>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Contact Form */}
+          <motion.form
+            onSubmit={handleSubmit(onSubmit)}
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="space-y-5"
+          >
+            <div className="grid sm:grid-cols-2 gap-5">
+              <div>
+                <input
+                  {...register("name")}
+                  placeholder="Your Name"
+                  className={inputCls}
+                />
+                {errors.name && (
+                  <p className="mt-1 text-xs text-red-400">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <input
+                  {...register("email")}
+                  placeholder="Email Address"
+                  className={inputCls}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-400">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div>
+              <input
+                {...register("subject")}
+                placeholder="Subject"
+                className={inputCls}
+              />
+              {errors.subject && (
+                <p className="mt-1 text-xs text-red-400">
+                  {errors.subject.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <textarea
+                {...register("message")}
+                rows={5}
+                placeholder="Your Message"
+                className={`${inputCls} resize-none`}
+              />
+              {errors.message && (
+                <p className="mt-1 text-xs text-red-400">
+                  {errors.message.message}
+                </p>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isSubmitting ? "Sending..." : "Send Message"}
+            </button>
+          </motion.form>
+        </div>
       </div>
     </section>
   );

@@ -13,6 +13,8 @@ const schema = z.object({
   title: z.string().min(1, 'Required'),
   description: z.string().min(1, 'Required'),
   longDescription: z.string().optional(),
+  challenges: z.string().optional(),
+  improvements: z.string().optional(),
   liveUrl: z.string().optional(),
   githubClient: z.string().optional(),
   githubServer: z.string().optional(),
@@ -44,6 +46,8 @@ export default function ProjectForm() {
         title: project.title,
         description: project.description || '',
         longDescription: project.longDescription || '',
+        challenges: project.challenges || '',
+        improvements: project.improvements || '',
         liveUrl: project.liveUrl || '',
         githubClient: project.githubClient || '',
         githubServer: project.githubServer || '',
@@ -98,6 +102,14 @@ export default function ProjectForm() {
         <div>
           <label className={labelCls}>Long Description (supports multi-line)</label>
           <textarea {...register('longDescription')} rows={6} className={`${inputCls} resize-none`} />
+        </div>
+        <div>
+          <label className={labelCls}>Challenges Faced</label>
+          <textarea {...register('challenges')} rows={4} className={`${inputCls} resize-none`} placeholder="Describe the challenges you faced..." />
+        </div>
+        <div>
+          <label className={labelCls}>Improvements & Future Plans</label>
+          <textarea {...register('improvements')} rows={4} className={`${inputCls} resize-none`} placeholder="What would you improve or add next..." />
         </div>
         <div className="grid sm:grid-cols-3 gap-4">
           <div><label className={labelCls}>Category</label><select {...register('category')} className={inputCls}>{PROJECT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></div>

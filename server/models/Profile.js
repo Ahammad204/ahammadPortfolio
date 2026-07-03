@@ -21,6 +21,8 @@ const profileSchema = new mongoose.Schema({
     label: String,
   }],
   email: { type: String },
+  phone: { type: String },
+  whatsapp: { type: String },
   location: { type: String },
   availability: { type: Boolean, default: true },
   openToWork: { type: Boolean, default: false },

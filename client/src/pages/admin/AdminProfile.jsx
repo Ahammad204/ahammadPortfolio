@@ -13,6 +13,8 @@ const schema = z.object({
   tagline: z.string().optional(),
   bio: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().optional(),
+  whatsapp: z.string().optional(),
   location: z.string().optional(),
   availability: z.boolean().optional(),
   openToWork: z.boolean().optional(),
@@ -53,6 +55,8 @@ export default function AdminProfile() {
         tagline: profile.tagline || "",
         bio: profile.bio || "",
         email: profile.email || "",
+        phone: profile.phone || "",
+        whatsapp: profile.whatsapp || "",
         location: profile.location || "",
         availability: profile.availability ?? true,
         openToWork: profile.openToWork ?? false,
@@ -251,6 +255,14 @@ export default function AdminProfile() {
             <div>
               <label className={labelCls}>Email</label>
               <input {...register("email")} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Phone</label>
+              <input {...register("phone")} placeholder="+880..." className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>WhatsApp</label>
+              <input {...register("whatsapp")} placeholder="+880..." className={inputCls} />
             </div>
             <div>
               <label className={labelCls}>Location</label>
