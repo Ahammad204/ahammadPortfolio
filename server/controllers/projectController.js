@@ -4,7 +4,7 @@ const cloudinary = require('../config/cloudinary');
 // GET /api/projects — public, paginated, filterable
 exports.getProjects = async (req, res) => {
   try {
-    const { page = 1, limit = 10, featured, category, status } = req.query;
+    const { page = 1, limit = 100, featured, category, status } = req.query;
     const filter = {};
     if (featured === 'true') filter.featured = true;
     if (category) filter.category = category;

@@ -14,7 +14,7 @@ const tabs = ['all', ...PROJECT_CATEGORIES];
 
 export default function Projects() {
   const [category, setCategory] = useState('all');
-  const params = category === 'all' ? {} : { category };
+  const params = category === 'all' ? { limit: 100 } : { category, limit: 100 };
   const { data, isLoading, isError } = useProjects(params);
   const projects = data?.data;
 
