@@ -54,7 +54,7 @@ export default function Projects() {
                 className="group rounded-xl overflow-hidden bg-dark-100 border border-dark-300/50 hover:border-primary/50 transition-all">
                 <div className="aspect-video overflow-hidden bg-dark-200">
                   {project.coverImage ? (
-                    <img src={project.coverImage} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={project.coverImage} alt={project.title} className="w-full h-full object-cover object-left-top group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-600 text-5xl font-bold">{project.title[0]}</div>
                   )}
