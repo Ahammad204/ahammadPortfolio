@@ -45,7 +45,7 @@ export default function Footer() {
         </div>
         <div className="mt-8 pt-6 border-t border-dark-300/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>
-            &copy; {year} {profile?.name || "Developer"}. All rights reserved.
+            &copy;{" "}{year} {profile?.name || "Developer"}. All rights reserved.
           </p>
           <p>Built with React &amp; Node.js</p>
         </div>
